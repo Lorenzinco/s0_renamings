@@ -34,6 +34,12 @@ class Phi:
         """
         return " \033[91m^ \033[0m".join([str(clause) for clause in self.clauses])
     
+    def clone(self):
+        """
+        Returns a clone of the formula.
+        """
+        return Phi([clause.clone() for clause in self.clauses])
+    
     def relax_all(self,literal:Literal):
         """
         Relaxes all the clauses in the formula that do not contain such literal with a given literal.
@@ -41,7 +47,20 @@ class Phi:
         for clause in self.clauses:
             if literal not in clause.literals: # uses the __eq__ method of Literal, so it checks for the same name and not the negation
                 self.relax(clause,literal)
+
             
+    def rename(self,literal:Literal):
+        """
+        Renames all the clauses in the formula that do not contain such literal with a given literal.
+        """
+        for clause in self.clauses:
+            if literal not in clause.literals:
+                continue
+            #remove the original clause from the list of clauses
+            clause.rename(literal)
+            #add the new clause to the list of clauses
+
+
 
     
     def relax(self,clause:Clause,literal:Literal):
@@ -59,8 +78,8 @@ class Phi:
 
         #add the new clause to the list of clauses
         self.clauses.append(clone)
-        self.clauses.append(clone)
-    
+        self.clauses.append(clause)
+
     def remove_horn_clauses(self):
         """
         Removes all Horn clauses from the formula.
@@ -78,7 +97,19 @@ class Phi:
         
         common_literals = self.clauses[0].literals.copy()
         common_literals = [literal for literal in common_literals if all(any(literal == l for l in clause.literals) for clause in self.clauses[1:])]
-
+        return common_literals
+    
+    def positive_literal_in_common(self)->list[Literal]:
+        """
+        Returns a list of positive literals that are in common between the clauses.
+        """
+        if len(self.clauses) == 0:
+            return []
+        if len(self.clauses) == 1:
+            return self.clauses[0].all_positive_literals()
+        
+        common_literals = self.clauses[0].all_positive_literals().copy()
+        common_literals = [literal for literal in common_literals if all(any(literal == l for l in clause.all_positive_literals()) for clause in self.clauses[1:])]
         return common_literals
     
     def remove_literal(self,literal:Literal):
@@ -104,6 +135,26 @@ class Phi:
                 if literal.literal not in literal_count:
                     literal_count[literal.literal] = 0
                 literal_count[literal.literal] += 1
+
+        max_literal = max(literal_count, key=literal_count.get)
+        return Literal(max_literal,False)
+    
+    def positive_literal_with_most_occurrences(self)->Literal:
+        """
+        Returns the positive literal with the most occurrences in the formula.
+        """
+        if len(self.clauses) == 0:
+            return None
+        if len(self.clauses) == 1:
+            return self.clauses[0].literals[0]
+        
+        literal_count = {}
+        for clause in self.clauses:
+            for literal in clause.literals:
+                if not literal.negated:
+                    if literal.literal not in literal_count:
+                        literal_count[literal.literal] = 0
+                    literal_count[literal.literal] += 1
 
         max_literal = max(literal_count, key=literal_count.get)
         return Literal(max_literal,False)

@@ -25,11 +25,33 @@ class Clause:
         """
         Checks if the clause is a Horn clause.
         """
-        return len(self.literals) == 1 or all(literal.negated for literal in self.literals[:-1])
+        if len(self.literals) == 1:
+            return True
+        foundPositive = False
+        for literal in self.literals:
+            if literal.negated:
+                continue
+            if foundPositive:
+                return False
+            foundPositive = True
+        return True
     
     def all_positive_literals(self)->list[Literal]:
         """
         Returns a list of all positive literals in the clause.
         """
         return [literal for literal in self.literals if not literal.negated]
+    
+    def rename(self,literal:Literal):
+        """
+        Renames the clause with a given literal.
+        """
+        # if the literal is not in the clause, return
+        if literal not in self.literals:
+            return
+        # change the negation of the literal
+        for i in range(len(self.literals)):
+            if self.literals[i] == literal:
+                self.literals[i].negate()
+                break
     

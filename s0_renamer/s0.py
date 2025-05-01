@@ -16,7 +16,7 @@ def is_s0(phi:Phi)->bool:
     if len(phi.clauses) == 0:
         return True
     ## Step 2: Check if all the remaining clauses have at least one literal in common
-    common_literals = phi.literal_in_common()
+    common_literals = phi.positive_literal_in_common()
     if len(common_literals) == 0:
         return False
     ## Step 3: Remove such literal from the formula
@@ -38,6 +38,13 @@ def main():
     phi_2 = Phi.from_string(formula)
     print(phi_2)
     print("Is S0:",is_s0(phi_2))
+
+    with open("cnfs/2.cnf") as f:
+        formula = f.read()
+    phi_3 = Phi.from_string(formula)
+    print(phi_3)
+    print("Is S0:",is_s0(phi_3))
+    
 
 
 if __name__ == "__main__":
